@@ -89,14 +89,38 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
 
 #[cfg(unix)]
 fn reopen_tty_as_stdin() -> io::Result<()> {
+    use std::ffi::CStr;
     use std::fs::OpenOptions;
     use std::os::unix::io::IntoRawFd;
-    let tty = OpenOptions::new().read(true).open("/dev/tty")?;
+
+    // On macOS, kqueue can't register a freshly-opened /dev/tty fd (returns EINVAL),
+    // but it can register the actual pty path (e.g. /dev/ttys001) that the shell
+    // gave to stderr/stdout. Resolve it via ttyname.
+    let candidate_fds = [libc::STDERR_FILENO, libc::STDOUT_FILENO];
+    let mut tty_path: Option<std::path::PathBuf> = None;
+    for fd in candidate_fds {
+        if unsafe { libc::isatty(fd) } != 1 {
+            continue;
+        }
+        let ptr = unsafe { libc::ttyname(fd) };
+        if ptr.is_null() {
+            continue;
+        }
+        let cstr = unsafe { CStr::from_ptr(ptr) };
+        if let Ok(s) = cstr.to_str() {
+            tty_path = Some(s.into());
+            break;
+        }
+    }
+    let tty_path = tty_path.unwrap_or_else(|| std::path::PathBuf::from("/dev/tty"));
+
+    let tty = OpenOptions::new().read(true).write(true).open(&tty_path)?;
     let tty_fd = tty.into_raw_fd();
     let ret = unsafe { libc::dup2(tty_fd, libc::STDIN_FILENO) };
+    let dup_err = if ret == -1 { Some(io::Error::last_os_error()) } else { None };
     unsafe { libc::close(tty_fd) };
-    if ret == -1 {
-        return Err(io::Error::last_os_error());
+    if let Some(e) = dup_err {
+        return Err(e);
     }
     Ok(())
 }
