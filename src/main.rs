@@ -23,6 +23,10 @@ use app::{App, Mode};
 struct Cli {
     /// XML file to view (reads stdin if omitted)
     file: Option<std::path::PathBuf>,
+
+    /// Show closing tags (hidden by default)
+    #[arg(long)]
+    all: bool,
 }
 
 fn main() {
@@ -58,7 +62,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
         }
     };
 
-    let nodes = tree::parse(xml_content.as_bytes()).map_err(|e| e)?;
+    let nodes = tree::parse(xml_content.as_bytes(), cli.all).map_err(|e| e)?;
 
     if nodes.is_empty() {
         eprintln!("No XML nodes found.");
@@ -66,6 +70,7 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let mut app = App::new(nodes);
+    app.collapse_all();
 
     enable_raw_mode()?;
     let mut stdout = io::stdout();

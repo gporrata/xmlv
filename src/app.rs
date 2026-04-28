@@ -139,14 +139,6 @@ impl App {
 
     pub fn collapse_all(&mut self) {
         for node in &mut self.nodes {
-            if node.has_children && node.depth == 0 {
-                node.collapsed = true;
-            } else if node.has_children {
-                node.collapsed = false;
-            }
-        }
-        // Collapse only top-level
-        for node in &mut self.nodes {
             if node.has_children {
                 node.collapsed = true;
             }

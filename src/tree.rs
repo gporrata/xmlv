@@ -25,7 +25,7 @@ pub enum NodeKind {
     CData(String),
 }
 
-pub fn parse<R: BufRead>(reader: R) -> Result<Vec<XmlNode>, String> {
+pub fn parse<R: BufRead>(reader: R, include_close_tags: bool) -> Result<Vec<XmlNode>, String> {
     let mut xml = Reader::from_reader(reader);
     xml.config_mut().trim_text(true);
 
@@ -62,10 +62,8 @@ pub fn parse<R: BufRead>(reader: R) -> Result<Vec<XmlNode>, String> {
             Ok(Event::End(_)) => {
                 depth = depth.saturating_sub(1);
                 if let Some((open_idx, name)) = stack.pop() {
-                    // Only add close tag if the element actually had children
-                    let _open_node = &nodes[open_idx];
-                    // Check if any nodes were added after the open tag
-                    if nodes.len() > open_idx + 1 {
+                    let had_children = nodes.len() > open_idx + 1;
+                    if had_children && include_close_tags {
                         nodes.push(XmlNode {
                             kind: NodeKind::CloseElement { name },
                             depth,
@@ -73,11 +71,9 @@ pub fn parse<R: BufRead>(reader: R) -> Result<Vec<XmlNode>, String> {
                             has_children: false,
                             child_count: 0,
                         });
-                    } else {
-                        // No children: mark as self-closing
+                    } else if !had_children {
                         nodes[open_idx].has_children = false;
                     }
-                    // Count children for the open node
                     let count = nodes.len() - open_idx - 1;
                     nodes[open_idx].child_count = count;
                 }
