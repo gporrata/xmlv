@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manual_bookings_response>
+      <request_parameters>
+        <start_date>2016-04-28T00:11:04</start_date>
+        <end_date>2026-04-28T00:11:04</end_date>
+        <query_type>ById</query_type>
+        <iteration>1</iteration>
+        <licensee_code>0001</licensee_code>
+      </request_parameters>
+      <total_booking_count>1</total_booking_count>
+      <iteration_booking_count>1</iteration_booking_count>
+      <additional_bookings>0</additional_bookings>
+      <bookings>
+        <booking>
+      <club_id>1</club_id>
+      <branch_code>HQ</branch_code>
+      <status>Confirmed</status>
+      <agent_id></agent_id>
+      
+      
+      
+      <confirmation_number>ACT-2026-84721</confirmation_number>
+      <booking_reference_id>ACT-2026-84721</booking_reference_id>
+      <trip_id>21876</trip_id>
+      <external_reference_code></external_reference_code>
+      <agent_comment>VIP client - preferred seating arranged. Commission rate: 12%. Confirmed via phone on 04/20/2026.</agent_comment>
+      <booking_id>28069</booking_id>
+      <start_date>2026-05-15</start_date>
+      <end_date>2026-05-15</end_date>
+      <booking_date>2026-04-27T23:37:38.000</booking_date>
+      <refresh_date>2026-04-27T23:37:38.000</refresh_date>
+      <assigned_agent_info>
+      <assigned_agent_id>1556</assigned_agent_id>
+      <assigned_agent_name>George Porrata+ACA</assigned_agent_name>
+      
+      <assigned_agent_custom_id></assigned_agent_custom_id>
+      <assigned_branch_id>2</assigned_branch_id>
+      <assigned_branch_name>Headquarters</assigned_branch_name>
+      <assigned_branch_code>HQ</assigned_branch_code>
+    </assigned_agent_info>
+      <financial_summary>
+      <pricing_summary>
+        <total>210.00</total>
+        <currency>USD</currency>
+      </pricing_summary>
+      
+      <commission>
+        <expected_commission>22.68</expected_commission>
+        <actual_commission>22.68</actual_commission>
+      </commission>
+    </financial_summary>
+      <payment_schedule>
+      
+    </payment_schedule>
+      <payment_infos>
+        <payment_info>
+          <payer_name>James Richardson</payer_name>
+          <paid_amount>210.00</paid_amount>
+          <paid_currency_code>USD</paid_currency_code>
+          <payment_type>Deposit</payment_type>
+          <payment_method>Credit Card</payment_method>
+          <payment_date>2026-04-27</payment_date>
+          <previosly_applied>false</previosly_applied>
+          
+          
+        </payment_info>
+      </payment_infos>
+      
+      
+      
+      <traveler_details>
+      <primary_traveler>
+      <name_title></name_title><first_name>George</first_name><middle_name></middle_name><last_name>Porrata</last_name><date_of_birth>2016-02-17</date_of_birth><suffix></suffix><phone>333-333-3333</phone><email>george.porrata@example.com</email><membership_number></membership_number>
+    </primary_traveler>
+      
+    </traveler_details>
+      
+      
+      <booking_agency_of_record>UNASSIGNED</booking_agency_of_record>
+      
+      
+      
+      <destination>Miami, FL, USA</destination>
+      <pay_on_arrival>false</pay_on_arrival>
+      <custom_fields/>
+      <description>Full-day snorkeling and dolphin watching tour departing from Miami Beach marina. Includes equipment, lunch, and professional guide.</description>
+      
+    </booking>
+      </bookings>
+    </manual_bookings_response>

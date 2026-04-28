@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<library name="City Library" city="Springfield">
+  <!-- Fiction section -->
+  <section type="fiction">
+    <book id="1" available="true">
+      <title>The Great Gatsby</title>
+      <author>F. Scott Fitzgerald</author>
+      <year>1925</year>
+    </book>
+    <book id="2" available="false">
+      <title>1984</title>
+      <author>George Orwell</author>
+      <year>1949</year>
+      <tags>
+        <tag>dystopia</tag>
+        <tag>political</tag>
+      </tags>
+    </book>
+  </section>
+  <section type="non-fiction">
+    <book id="3" available="true">
+      <title>Sapiens</title>
+      <author>Yuval Noah Harari</author>
+      <year>2011</year>
+    </book>
+  </section>
+  <empty-element/>
+  <cdata-example><![CDATA[Some <raw> & "text" here]]></cdata-example>
+</library>
