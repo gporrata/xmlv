@@ -1,6 +1,5 @@
 use quick_xml::events::Event;
 use quick_xml::Reader;
-use std::io::BufRead;
 
 #[derive(Debug, Clone)]
 pub struct XmlNode {
@@ -9,6 +8,7 @@ pub struct XmlNode {
     pub collapsed: bool,
     pub has_children: bool,
     pub child_count: usize, // populated after build
+    pub line: usize,        // 1-indexed line in original source
 }
 
 #[derive(Debug, Clone)]
@@ -25,8 +25,23 @@ pub enum NodeKind {
     CData(String),
 }
 
-pub fn parse<R: BufRead>(reader: R, include_close_tags: bool) -> Result<Vec<XmlNode>, String> {
-    let mut xml = Reader::from_reader(reader);
+pub fn parse(content: &[u8], include_close_tags: bool) -> Result<Vec<XmlNode>, String> {
+    // Build a lookup from byte offset → 1-indexed line number.
+    let mut line_starts: Vec<usize> = vec![0];
+    for (i, &b) in content.iter().enumerate() {
+        if b == b'\n' {
+            line_starts.push(i + 1);
+        }
+    }
+    let byte_to_line = |pos: u64| -> usize {
+        let pos = pos as usize;
+        match line_starts.binary_search(&pos) {
+            Ok(idx) => idx + 1,
+            Err(idx) => idx,
+        }
+    };
+
+    let mut xml = Reader::from_reader(content);
     xml.config_mut().trim_text(true);
 
     let mut nodes: Vec<XmlNode> = Vec::new();
@@ -36,8 +51,10 @@ pub fn parse<R: BufRead>(reader: R, include_close_tags: bool) -> Result<Vec<XmlN
     let mut stack: Vec<(usize, String)> = Vec::new();
 
     loop {
+        let pos = xml.buffer_position();
         match xml.read_event_into(&mut buf) {
             Ok(Event::Start(e)) => {
+                let line = byte_to_line(pos);
                 let name = String::from_utf8_lossy(e.local_name().as_ref()).to_string();
                 let attrs: Vec<(String, String)> = e
                     .attributes()
@@ -55,11 +72,13 @@ pub fn parse<R: BufRead>(reader: R, include_close_tags: bool) -> Result<Vec<XmlN
                     collapsed: false,
                     has_children: true,
                     child_count: 0,
+                    line,
                 });
                 stack.push((idx, name));
                 depth += 1;
             }
             Ok(Event::End(_)) => {
+                let line = byte_to_line(pos);
                 depth = depth.saturating_sub(1);
                 if let Some((open_idx, name)) = stack.pop() {
                     let had_children = nodes.len() > open_idx + 1;
@@ -70,6 +89,7 @@ pub fn parse<R: BufRead>(reader: R, include_close_tags: bool) -> Result<Vec<XmlN
                             collapsed: false,
                             has_children: false,
                             child_count: 0,
+                            line,
                         });
                     } else if !had_children {
                         nodes[open_idx].has_children = false;
@@ -79,6 +99,7 @@ pub fn parse<R: BufRead>(reader: R, include_close_tags: bool) -> Result<Vec<XmlN
                 }
             }
             Ok(Event::Empty(e)) => {
+                let line = byte_to_line(pos);
                 let name = String::from_utf8_lossy(e.local_name().as_ref()).to_string();
                 let attrs: Vec<(String, String)> = e
                     .attributes()
@@ -95,9 +116,11 @@ pub fn parse<R: BufRead>(reader: R, include_close_tags: bool) -> Result<Vec<XmlN
                     collapsed: false,
                     has_children: false,
                     child_count: 0,
+                    line,
                 });
             }
             Ok(Event::Text(e)) => {
+                let line = byte_to_line(pos);
                 let text = e.unescape().map(|t| t.to_string()).unwrap_or_default();
                 if !text.trim().is_empty() {
                     nodes.push(XmlNode {
@@ -106,10 +129,12 @@ pub fn parse<R: BufRead>(reader: R, include_close_tags: bool) -> Result<Vec<XmlN
                         collapsed: false,
                         has_children: false,
                         child_count: 0,
+                        line,
                     });
                 }
             }
             Ok(Event::Comment(e)) => {
+                let line = byte_to_line(pos);
                 let text = String::from_utf8_lossy(e.as_ref()).to_string();
                 nodes.push(XmlNode {
                     kind: NodeKind::Comment(text),
@@ -117,9 +142,11 @@ pub fn parse<R: BufRead>(reader: R, include_close_tags: bool) -> Result<Vec<XmlN
                     collapsed: false,
                     has_children: false,
                     child_count: 0,
+                    line,
                 });
             }
             Ok(Event::CData(e)) => {
+                let line = byte_to_line(pos);
                 let text = String::from_utf8_lossy(e.as_ref()).to_string();
                 nodes.push(XmlNode {
                     kind: NodeKind::CData(text),
@@ -127,6 +154,7 @@ pub fn parse<R: BufRead>(reader: R, include_close_tags: bool) -> Result<Vec<XmlN
                     collapsed: false,
                     has_children: false,
                     child_count: 0,
+                    line,
                 });
             }
             Ok(Event::Eof) => break,

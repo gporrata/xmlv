@@ -70,7 +70,6 @@ fn run() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     let mut app = App::new(nodes);
-    app.collapse_all();
 
     enable_raw_mode()?;
     let mut stdout = io::stdout();

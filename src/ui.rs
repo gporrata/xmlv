@@ -2,7 +2,7 @@ use ratatui::{
     layout::{Constraint, Direction, Layout},
     style::{Color, Modifier, Style},
     text::{Line, Span},
-    widgets::{Block, Borders, List, ListItem, ListState, Paragraph},
+    widgets::{List, ListItem, ListState, Paragraph},
     Frame,
 };
 
@@ -23,7 +23,10 @@ pub fn render(f: &mut Frame, app: &mut App) {
         .split(area);
 
     let viewport_height = chunks[0].height as usize;
-    app.viewport_height = viewport_height.saturating_sub(2); // border top/bottom
+    app.viewport_height = viewport_height;
+
+    let max_line = app.nodes.iter().map(|n| n.line).max().unwrap_or(1);
+    let gutter_width = max_line.to_string().len();
 
     // Build list items
     let items: Vec<ListItem> = app
@@ -36,16 +39,18 @@ pub fn render(f: &mut Frame, app: &mut App) {
             let is_cursor = vis_pos == app.cursor;
             let is_match = app.search_matches.contains(&vis_pos);
 
+            let line_num = format!("{:>width$} ", node.line, width = gutter_width);
+
             let collapse_icon = if node.has_children {
                 if node.collapsed { "▶ " } else { "▼ " }
             } else {
                 "  "
             };
 
-
             let (tag_style, val_style) = node_colors(&node.kind);
 
             let mut spans = vec![
+                Span::styled(line_num, Style::default().fg(Color::Rgb(75, 75, 100))),
                 Span::raw(indent),
                 Span::styled(collapse_icon, Style::default().fg(Color::DarkGray)),
             ];
@@ -96,13 +101,7 @@ pub fn render(f: &mut Frame, app: &mut App) {
     let mut list_state = ListState::default();
     list_state.select(Some(app.cursor));
 
-    let block = Block::default()
-        .title(" xmlv ")
-        .borders(Borders::ALL)
-        .border_style(Style::default().fg(Color::Rgb(80, 80, 120)));
-
     let list = List::new(items)
-        .block(block)
         .highlight_style(Style::default()); // highlight handled manually
 
     // We scroll manually via scroll_offset using ListState offset
